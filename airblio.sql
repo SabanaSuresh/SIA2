@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : sam. 10 mai 2025 à 16:26
+-- Généré le : dim. 11 mai 2025 à 03:56
 -- Version du serveur : 9.1.0
 -- Version de PHP : 8.3.14
 
@@ -167,7 +167,7 @@ CREATE TABLE IF NOT EXISTS `utilisateurs` (
 
 INSERT INTO `utilisateurs` (`id`, `email`, `mot_de_passe`) VALUES
 (1, 'responsable@airblio.com', 'mdp'),
-(2, 'a@b.com', 'a');
+(2, 'admin@airblio.com', 'airblio2024');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

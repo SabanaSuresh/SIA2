@@ -39,7 +39,7 @@ class AccueilScreen(Screen):
         alert_box.bind(pos=self.update_alert_bg, size=self.update_alert_bg)
 
         alert_btn = Button(
-            text="Alerte ! Demande d'intervention suite à une tempête N°Client : 52041",
+            text="Alerte ! Demande d'intervention pour une panne électrique suite à une tempête N°Client : 52041",
             background_color=(0, 0, 0, 0),
             color=(1, 1, 1, 1),
             font_size=16,
@@ -357,7 +357,7 @@ class AccueilScreen(Screen):
         header = BoxLayout(orientation='horizontal', size_hint_y=None, height=header_height)
         header.add_widget(Label(text="Référence", color=(0.00, 0.23, 0.36, 1), bold=True, size_hint_x=0.25, halign='left'))
         header.add_widget(Label(text="Intitulé", color=(0.00, 0.23, 0.36, 1), bold=True, size_hint_x=0.5, halign='left'))
-        header.add_widget(Label(text="Date", color=(0.00, 0.23, 0.36, 1), bold=True, size_hint_x=0.2, halign='center'))
+        header.add_widget(Label(text="Statut", color=(0.00, 0.23, 0.36, 1), bold=True, size_hint_x=0.2, halign='center'))
         header.add_widget(Label(text="", size_hint_x=0.05))
         content_layout.add_widget(header)
         
@@ -373,10 +373,9 @@ class AccueilScreen(Screen):
             ligne.add_widget(Label(text=str(intervention.get("reference_demande") or ""), color=(0.00, 0.23, 0.36, 1), size_hint_x=0.25, halign='left', padding=(10, 0)))
             ligne.add_widget(Label(text=str(intervention.get("intitule") or ""), color=(0.00, 0.23, 0.36, 1), size_hint_x=0.5, halign='left', shorten=True, shorten_from='right'))
 
-            date_str = intervention.get("date_intervention", "")
-            if date_str:
-                date_str = date_str.strftime('%d/%m')
-            ligne.add_widget(Label(text=str(date_str or ""), color=(0.00, 0.23, 0.36, 1), size_hint_x=0.2, halign='center'))
+            # Statut
+            statut = intervention.get("statut", "")
+            ligne.add_widget(Label(text=statut, color=(0.00, 0.23, 0.36, 1), size_hint_x=0.2, halign='center'))
 
             importance_box = BoxLayout(size_hint_x=0.05, padding=5)
             dot = Widget(size_hint=(None, None), size=(12, 12))

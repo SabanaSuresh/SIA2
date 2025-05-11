@@ -6,7 +6,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.gridlayout import GridLayout
 from kivy_garden.mapview import MapView, MapMarkerPopup
-from kivy.graphics import Color, RoundedRectangle
+from kivy.graphics import Color, RoundedRectangle, Rectangle
 
 from carte_widget import CarteWidget
 from database import Database
@@ -21,12 +21,23 @@ class CarteScreen(Screen):
         self.markers_projets = {}
         self.projet_selectionne_id = None
 
-        # Layout principal
+        # Layout principal avec couleur de fond générale
         self.main_layout = BoxLayout(orientation='vertical', spacing=0)
+        with self.main_layout.canvas.before:
+            Color(0.871, 0.941, 0.973, 1)  # Conversion de #DEF0F8 en RGBA
+            self.bg = Rectangle(pos=self.main_layout.pos, size=self.main_layout.size)
+        self.main_layout.bind(pos=self.update_bg, size=self.update_bg)
         self.add_widget(self.main_layout)
 
         # Navigation bar en haut
         self.navbar = NavigationBar(self.manager, current_screen_name="carte")
+        
+        # Connecter le bouton de déconnexion à notre fonction
+        # On suppose que le bouton existe déjà dans la navbar et s'appelle 'log_out' ou similaire
+        for child in self.navbar.walk():
+            if isinstance(child, Button) and (child.text.lower() in ['log out', 'logout', 'déconnexion', 'log_out', 'déconnecter']):
+                child.bind(on_press=self.deconnecter)
+                
         self.main_layout.add_widget(self.navbar)
 
         # Contenu principal : sidebar + carte
@@ -35,7 +46,7 @@ class CarteScreen(Screen):
         # Sidebar gauche
         left_side = GridLayout(cols=1, spacing=30, padding=20, size_hint=(0.3, 1))
         with left_side.canvas.before:
-            Color(0.0, 0.22, 0.33, 1)
+            Color(0.129, 0.620, 0.737, 1)
             self.sidebar_bg = RoundedRectangle(pos=left_side.pos, size=left_side.size, radius=[20])
         left_side.bind(pos=self.update_sidebar_bg, size=self.update_sidebar_bg)
 
@@ -88,11 +99,17 @@ class CarteScreen(Screen):
         detail_box.add_widget(self.projet_details)
         left_side.add_widget(detail_box)
 
-        # Carte
+        # Carte avec fond spécifique
         self.mapview = CarteWidget(size_hint=(0.7, 1))
         self.mapview.zoom = 2
         self.mapview.lat = 20
         self.mapview.lon = 0
+        
+        # Ajout du fond spécifique pour la zone de la carte
+        with self.mapview.canvas.before:
+            Color(0.871, 0.941, 0.973, 1)  # Conversion de #DEF0F8 en RGBA
+            self.mapview_bg = Rectangle(pos=self.mapview.pos, size=self.mapview.size)
+        self.mapview.bind(pos=self.update_mapview_bg, size=self.update_mapview_bg)
 
         content.add_widget(left_side)
         content.add_widget(self.mapview)
@@ -102,6 +119,40 @@ class CarteScreen(Screen):
 
         self.selected_statut = None
         self.load_projets()
+
+    def deconnecter(self, instance):
+        """Fonction appelée lors du clic sur le bouton de déconnexion"""
+        if hasattr(self.manager, 'deconnecter'):
+            # Si la méthode existe dans le gestionnaire d'écrans, l'appeler
+            self.manager.deconnecter()
+        else:
+            # Sinon, simplement rediriger vers l'écran de login
+            if 'login' in self.manager.screen_names:
+                self.manager.current = 'login'
+            else:
+                print("Écran de login non trouvé. Implémentez la déconnexion dans le ScreenManager.")
+                
+                # Alternative: Si vous avez un app direct
+                if hasattr(self, 'app') and hasattr(self.app, 'deconnecter'):
+                    self.app.deconnecter()
+                # Si App est accessible via l'import
+                else:
+                    from kivy.app import App
+                    app = App.get_running_app()
+                    if hasattr(app, 'deconnecter'):
+                        app.deconnecter()
+                    elif hasattr(app, 'logout'):
+                        app.logout()
+                    else:
+                        print("Aucune méthode de déconnexion trouvée dans l'application.")
+
+    def update_bg(self, *args):
+        self.bg.pos = self.main_layout.pos
+        self.bg.size = self.main_layout.size
+
+    def update_mapview_bg(self, *args):
+        self.mapview_bg.pos = self.mapview.pos
+        self.mapview_bg.size = self.mapview.size
 
     def update_sidebar_bg(self, *args):
         self.sidebar_bg.pos = self.children[0].children[0].children[-1].pos
@@ -146,7 +197,7 @@ class CarteScreen(Screen):
     def passe_filtres(self, projet):
         if self.lieu_input.text.strip() and self.lieu_input.text.strip().lower() not in projet['lieu'].lower():
             return False
-        if self.date_input.text.strip() and self.date_input.text.strip() not in str(projet['date_projet']):
+        if self.date_input.text.strip() and self.date_input.text.strip().lower() not in str(projet['date_projet']).lower():
             return False
         if self.selected_statut and projet['statut'] != self.selected_statut:
             return False
@@ -183,6 +234,14 @@ class CarteScreen(Screen):
     def toggle_statut(self, statut):
         if self.selected_statut == statut:
             self.selected_statut = None
+            self.btn_en_cours.background_color = (0.4, 0.8, 1, 1)
+            self.btn_prevu.background_color = (0.4, 0.8, 1, 1)
         else:
             self.selected_statut = statut
+            if statut == 'en cours':
+                self.btn_en_cours.background_color = (0.1, 0.6, 0.8, 1)
+                self.btn_prevu.background_color = (0.4, 0.8, 1, 1)
+            else:
+                self.btn_en_cours.background_color = (0.4, 0.8, 1, 1)
+                self.btn_prevu.background_color = (0.1, 0.6, 0.8, 1)
         self.refresh_affichage()
